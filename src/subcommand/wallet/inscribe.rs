@@ -16,6 +16,7 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
+  std::any::Any;
 };
 
 #[derive(Serialize)]

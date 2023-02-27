@@ -22,10 +22,10 @@ use {
 #[derive(Serialize)]
 struct Output {
   commit: Txid,
-  commit_raw: Any,
+  commit_raw: String,
   inscription: InscriptionId,
   reveal: Txid,
-  reveal_raw: Any,
+  reveal_raw: String,
   fees: u64,
 }
 
@@ -110,9 +110,9 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        commit_raw: &signed_raw_commit_tx,
+        commit_raw: &signed_raw_commit_tx.to_string(),
         reveal: reveal_tx.txid(),
-        reveal_raw: &reveal_tx,
+        reveal_raw: &reveal_tx.to_string(),
         inscription: reveal_tx.txid().into(),
         fees,
       })?;
@@ -128,9 +128,9 @@ impl Inscribe {
 
       print_json(Output {
         commit,
-        commit_raw: &signed_raw_commit_tx,
+        commit_raw: &signed_raw_commit_tx.to_string(),
         reveal,
-        reveal_raw: &reveal_tx,
+        reveal_raw: &reveal_tx.to_string(),
         inscription: reveal.into(),
         fees,
       })?;

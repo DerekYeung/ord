@@ -1,3 +1,4 @@
+use bitcoin::secp256k1::ffi::recovery;
 use bitcoincore_rpc::RawTx;
 
 use {
@@ -22,6 +23,7 @@ use {
 
 #[derive(Serialize)]
 struct Output {
+  recovery_wif: String,
   commit: Txid,
   commit_raw: String,
   inscription: InscriptionId,
@@ -104,11 +106,15 @@ impl Inscribe {
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
+    let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
+    let recovery_wif = recovery_private_key.to_wif();
+
     let commit_raw = signed_raw_commit_tx.raw_hex().to_string();
     let reveal_raw = reveal_tx.raw_hex().to_string();
 
     if self.dry_run {
       print_json(Output {
+        recovery_wif,
         commit: unsigned_commit_tx.txid(),
         commit_raw,
         reveal: reveal_tx.txid(),
@@ -129,6 +135,7 @@ impl Inscribe {
         .context("Failed to send reveal transaction")?;
 
       print_json(Output {
+        recovery_wif,
         commit,
         commit_raw,
         reveal,

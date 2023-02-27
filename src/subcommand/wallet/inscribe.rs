@@ -21,7 +21,7 @@ use {
 #[derive(Serialize)]
 struct Output {
   commit: Txid,
-  commit_raw: Vec<T>,
+  commit_raw: Vec<u8>,
   inscription: InscriptionId,
   reveal: Txid,
   reveal_raw: bitcoin::Transaction,

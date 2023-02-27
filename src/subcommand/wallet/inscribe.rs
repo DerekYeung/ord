@@ -127,7 +127,9 @@ impl Inscribe {
 
       print_json(Output {
         commit,
+        commit_raw: '',
         reveal,
+        reveal_raw: '',
         inscription: reveal.into(),
         fees,
       })?;

@@ -23,8 +23,8 @@ struct Output {
   commit: Txid,
   commit_raw: Vec<T>,
   inscription: InscriptionId,
-  reveal: bitcoin::Transaction,
-  reveal_raw: String,
+  reveal: Txid,
+  reveal_raw: bitcoin::Transaction,
   fees: u64,
 }
 

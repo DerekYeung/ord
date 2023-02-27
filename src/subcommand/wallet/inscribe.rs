@@ -21,10 +21,10 @@ use {
 #[derive(Serialize)]
 struct Output {
   commit: Txid,
-  commit_raw: std::any,
+  commit_raw: Any,
   inscription: InscriptionId,
   reveal: Txid,
-  reveal_raw: std::any,
+  reveal_raw: Any,
   fees: u64,
 }
 

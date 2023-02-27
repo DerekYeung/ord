@@ -107,7 +107,7 @@ impl Inscribe {
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
     if self.dry_run {
-      print_json({
+      print_json(Output {
         commit: unsigned_commit_tx.txid(),
         commit_raw: &signed_raw_commit_tx,
         reveal: reveal_tx.txid(),
@@ -125,7 +125,7 @@ impl Inscribe {
         .send_raw_transaction(&reveal_tx)
         .context("Failed to send reveal transaction")?;
 
-      print_json({
+      print_json(Output {
         commit,
         commit_raw: &signed_raw_commit_tx,
         reveal,

@@ -140,7 +140,7 @@ impl Inscribe {
         commit,
         commit_raw,
         reveal,
-        reveal_raw: String.from(""),
+        reveal_raw: String::from(""),
         inscription: reveal.into(),
         fees,
       })?;

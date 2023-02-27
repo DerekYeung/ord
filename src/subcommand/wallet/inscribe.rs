@@ -21,10 +21,10 @@ use {
 #[derive(Serialize)]
 struct Output {
   commit: Txid,
-  commit_raw: Vec<u8>,
+  commit_raw: String,
   inscription: InscriptionId,
   reveal: Txid,
-  reveal_raw: bitcoin::Transaction,
+  reveal_raw: String,
   fees: u64,
 }
 
@@ -109,9 +109,9 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        commit_raw: signed_raw_commit_tx,
+        commit_raw: &signed_raw_commit_tx,
         reveal: reveal_tx.txid(),
-        reveal_raw: reveal_tx,
+        reveal_raw: &reveal_tx,
         inscription: reveal_tx.txid().into(),
         fees,
       })?;
@@ -127,9 +127,9 @@ impl Inscribe {
 
       print_json(Output {
         commit,
-        commit_raw: signed_raw_commit_tx,
+        commit_raw: &signed_raw_commit_tx,
         reveal,
-        reveal_raw: reveal_tx,
+        reveal_raw: &reveal_tx,
         inscription: reveal.into(),
         fees,
       })?;

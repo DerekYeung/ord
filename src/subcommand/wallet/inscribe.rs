@@ -106,6 +106,7 @@ impl Inscribe {
     let signed_raw_commit_tx = client
       .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
       .hex;
+    let network = options.chain().network();
     let recovery_private_key = PrivateKey::new(recovery_key_pair.to_inner().secret_key(), network);
     let recovery_wif = recovery_private_key.to_wif();
 

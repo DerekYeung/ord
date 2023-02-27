@@ -111,7 +111,7 @@ impl Inscribe {
         commit: unsigned_commit_tx.txid(),
         commit_raw,
         reveal: reveal_tx.txid(),
-        reveal_raw: reveal_tx.hex,
+        reveal_raw: &reveal_tx,
         inscription: reveal_tx.txid().into(),
         fees,
       })?;
@@ -129,7 +129,7 @@ impl Inscribe {
         commit,
         commit_raw: signed_raw_commit_tx,
         reveal,
-        reveal_raw: reveal_tx.hex,
+        reveal_raw: &reveal_tx,
         inscription: reveal.into(),
         fees,
       })?;

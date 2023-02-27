@@ -101,10 +101,6 @@ impl Inscribe {
 
     let fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
-    if !self.no_backup {
-      Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-    }
-
     let commit_raw = unsigned_commit_tx.raw_hex().to_string();
     let reveal_raw = reveal_tx.raw_hex().to_string();
 
@@ -118,6 +114,9 @@ impl Inscribe {
         fees,
       })?;
     } else {
+      if !self.no_backup {
+        Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
+      }
       let signed_raw_commit_tx = client
         .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
         .hex;

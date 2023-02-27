@@ -16,7 +16,6 @@ use {
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
   bitcoincore_rpc::Client,
   std::collections::BTreeSet,
-  std::any::Any,
 };
 
 #[derive(Serialize)]
@@ -110,9 +109,9 @@ impl Inscribe {
     if self.dry_run {
       print_json(Output {
         commit: unsigned_commit_tx.txid(),
-        commit_raw: String::from(signed_raw_commit_tx),
+        commit_raw: signed_raw_commit_tx.raw_tx().to_string(),
         reveal: reveal_tx.txid(),
-        reveal_raw: String::from(reveal_tx),
+        reveal_raw: reveal_tx.raw_tx().to_string(),
         inscription: reveal_tx.txid().into(),
         fees,
       })?;
@@ -128,9 +127,9 @@ impl Inscribe {
 
       print_json(Output {
         commit,
-        commit_raw: String::from(signed_raw_commit_tx),
+        commit_raw: signed_raw_commit_tx.raw_tx().to_string(),
         reveal,
-        reveal_raw: String::from(reveal_tx),
+        reveal_raw: reveal_tx.raw_tx().to_string(),
         inscription: reveal.into(),
         fees,
       })?;

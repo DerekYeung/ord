@@ -657,7 +657,7 @@ impl TransactionBuilder {
       let value = self.amounts[utxo];
       const MIN_AMOUNT_CHECK: Amount = Amount::from_sat(10_000);
 
-      if (value <= MIN_AMOUNT_CHECK) {
+      if value <= MIN_AMOUNT_CHECK {
         continue;
       }
 

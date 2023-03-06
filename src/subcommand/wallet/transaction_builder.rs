@@ -112,7 +112,7 @@ type Result<T> = std::result::Result<T, Error>;
 impl TransactionBuilder {
   const ADDITIONAL_INPUT_VBYTES: usize = 58;
   const ADDITIONAL_OUTPUT_VBYTES: usize = 43;
-  const MAX_POSTAGE: Amount = Amount::from_sat(1 * 10_000);
+  const MAX_POSTAGE: Amount = Amount::from_sat(2 * 5_000);
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
   pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(5_000);
 
@@ -277,13 +277,15 @@ impl TransactionBuilder {
       if self.outputs[0].1 >= dust_limit {
         tprintln!("no padding needed");
       } else {
-        let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].1)?;
-        self.inputs.insert(0, utxo);
-        self.outputs[0].1 += size;
-        tprintln!(
-          "padded alignment output to {} with additional {size} sat input",
-          self.outputs[0].1
-        );
+        while self.outputs[0].1 < dust_limit {
+          let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].1, true)?; // prefer smaller utxos to tidy dust outputs
+          self.inputs.insert(0, utxo);
+          self.outputs[0].1 += size;
+          tprintln!(
+            "padded alignment output to {} with additional {size} sat input",
+            self.outputs[0].1
+          );
+        }
       }
     }
 
@@ -302,15 +304,24 @@ impl TransactionBuilder {
       .checked_add(estimated_fee)
       .ok_or(Error::ValueOverflow)?;
 
-    if let Some(deficit) = total.checked_sub(self.outputs.last().unwrap().1) {
-      if deficit > Amount::ZERO {
+    if let Some(mut deficit) = total.checked_sub(self.outputs.last().unwrap().1) {
+      while deficit > Amount::ZERO {
+        let additional_fee = self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES);
         let needed = deficit
-          .checked_add(self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES))
+          .checked_add(additional_fee)
           .ok_or(Error::ValueOverflow)?;
-        let (utxo, value) = self.select_cardinal_utxo(needed)?;
+        let (utxo, value) = self.select_cardinal_utxo(needed, false)?; // prefer utxos that fill the needed amount
+        let benefit = value.checked_sub(additional_fee)
+          .ok_or(Error::NotEnoughCardinalUtxos)?;
         self.inputs.push(utxo);
         self.outputs.last_mut().unwrap().1 += value;
-        tprintln!("added {value} sat input to cover {deficit} sat deficit");
+        if benefit > deficit {
+          tprintln!("added {value} sat input to cover {deficit} sat deficit");
+          deficit = Amount::ZERO;
+        } else {
+          tprintln!("added {value} sat input to reduce {deficit} sat deficit by {benefit} sat");
+          deficit -= benefit;
+        }
       }
     }
 
@@ -626,8 +637,11 @@ impl TransactionBuilder {
     panic!("Could not find outgoing sat in inputs");
   }
 
-  fn select_cardinal_utxo(&mut self, minimum_value: Amount) -> Result<(OutPoint, Amount)> {
+  fn select_cardinal_utxo(&mut self, target_value: Amount, prefer_under: bool) -> Result<(OutPoint, Amount)> {
     let mut found = None;
+    let mut best = Amount::ZERO;
+
+    tprintln!("looking for {} cardinal worth {target_value}", if prefer_under { "smaller" } else { "bigger" });
 
     let inscribed_utxos = self
       .inscriptions
@@ -642,15 +656,36 @@ impl TransactionBuilder {
 
       let value = self.amounts[utxo];
 
-      if value >= minimum_value {
-        found = Some((*utxo, value));
-        break;
+      if prefer_under { // prefer an output smaller than the target over one bigger than it
+        if best == Amount::ZERO {
+            found = Some((*utxo, value));          
+            best = value;
+        } else if best <= target_value {
+          if value <= target_value && value > best {
+            found = Some((*utxo, value));          
+            best = value;
+          }
+        } else if value <= target_value || value < best {
+            found = Some((*utxo, value));          
+            best = value;
+        }
+      } else { // prefer an output bigger than the target over one smaller than it
+        if best >= target_value {
+          if value >= target_value && value < best {
+            found = Some((*utxo, value));          
+            best = value;
+          }
+        } else if value >= target_value || value > best {
+            found = Some((*utxo, value));          
+            best = value;
+        }
       }
     }
 
     let (utxo, value) = found.ok_or(Error::NotEnoughCardinalUtxos)?;
 
     self.utxos.remove(&utxo);
+    tprintln!("found cardinal worth {}", value);
 
     Ok((utxo, value))
   }

@@ -655,6 +655,11 @@ impl TransactionBuilder {
       }
 
       let value = self.amounts[utxo];
+      const min_amount_check: Amount = Amount::from_sat(10_000);
+
+      if (value <= min_amount_check) {
+        continue;
+      }
 
       if prefer_under { // prefer an output smaller than the target over one bigger than it
         if best == Amount::ZERO {
